@@ -10,7 +10,7 @@ function inspectReactProp(propName, propValue) {
 
 function inspectReactType(type) {
   if (!type) return '' + type;
-  return typeof type == 'string' ? type : type.name || type.displayName;
+  return typeof type == 'string' ? type : type.displayName || type.name;
 }
 
 function inspectReactNode(node, depth = 0) {
