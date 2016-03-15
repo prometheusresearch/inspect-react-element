@@ -3,6 +3,15 @@ import React from 'react';
 import omit from 'lodash.omit';
 import indentString from 'indent-string';
 
+/**
+ * Threshold after which we format props vertically.
+ */
+const MAX_LEN_THRESHOLD = 50;
+
+function lengthOfStringsInArray(array) {
+  return array.reduce((value, item) => value + item.length, 0);
+}
+
 function inspectReactProp(propName, propValue) {
   if (typeof propValue == 'string') return `${propName}="${propValue}"`;
   return `${propName}={${util.inspect(propValue)}}`;
@@ -24,7 +33,6 @@ function inspectReactNode(node, depth = 0) {
   const propNames = Object.keys(omit(props, 'children'));
   const propsText = propNames.length && propNames
     .map(propName => inspectReactProp(propName, props[propName]))
-    .join(' ');
 
   let childrenText;
   if (props.children) {
@@ -35,7 +43,15 @@ function inspectReactNode(node, depth = 0) {
 
   let nodeText = '<';
   nodeText += inspectReactType(node.type);
-  if (propsText) nodeText += ` ${propsText}`;
+
+  if (propsText) {
+    if (nodeText.length + lengthOfStringsInArray(propsText) > MAX_LEN_THRESHOLD) {
+      nodeText += '\n' + indentString(propsText.join('\n'), '  ', 1);
+
+    } else {
+      nodeText += ` ${propsText.join(' ')}`;
+    }
+  }
 
   if (childrenText) {
     nodeText += '>\n';

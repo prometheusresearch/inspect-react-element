@@ -21,3 +21,34 @@ tap.test('inspectReactElement picks up .displayName before .name', function (t) 
 
   t.equal(inspectReactElement(React.createElement(Custom)), '<Super />');
 });
+
+tap.test('inspectReactElement formats props vertically if it hits threshold', function (t) {
+  t.plan(2);
+  var inspectReactElement = require('../');
+  var React = require('react');
+
+  t.equal(
+      inspectReactElement(React.createElement(
+        'div',
+        {longProp: 'someLongPropValue',
+         anotherLongProp: 'anotherLongPropValue'})),
+        [
+          '<div',
+          '  longProp="someLongPropValue"',
+          '  anotherLongProp="anotherLongPropValue" />',
+        ].join('\n'))
+
+  t.equal(
+      inspectReactElement(React.createElement(
+        'div',
+        {longProp: 'someLongPropValue',
+         anotherLongProp: 'anotherLongPropValue'},
+        'Hello')),
+        [
+          '<div',
+          '  longProp="someLongPropValue"',
+          '  anotherLongProp="anotherLongPropValue">',
+          "  {'Hello'}",
+          '</div>'
+        ].join('\n'))
+});
