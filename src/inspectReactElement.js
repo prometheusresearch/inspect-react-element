@@ -17,32 +17,42 @@ function inspectReactProp(propName, propValue) {
   return `${propName}={${util.inspect(propValue)}}`;
 }
 
+function inspectReactProps(node) {
+  return node.props || {};
+}
+
 function inspectReactType(type) {
   if (!type) return '' + type;
   return typeof type == 'string' ? type : type.displayName || type.name;
 }
 
-function inspectReactNode(node, depth = 0) {
+function inspectReactNode(node, depth = 0, options = {}) {
+  let {
+    inspectReactProps: _inspectReactProps = inspectReactProps,
+    inspectReactProp: _inspectReactProp = inspectReactProp,
+    inspectReactType: _inspectReactType = inspectReactType
+  } = options;
   if (!React.isValidElement(node)) {
     const childInspected = util.inspect(node);
     const childText = depth > 0 ? `{${childInspected}}` : childInspected;
     return childText;
   }
 
-  const props = node.props || {};
+  const props = _inspectReactProps(node);
   const propNames = Object.keys(omit(props, 'children'));
   const propsText = propNames.length && propNames
-    .map(propName => inspectReactProp(propName, props[propName]))
+    .map(propName => _inspectReactProp(propName, props[propName]))
+    .filter(Boolean)
 
   let childrenText;
   if (props.children) {
     const childrenInspected = [];
-    React.Children.forEach(props.children, (node) => childrenInspected.push(inspectReactNode(node, depth + 1)));
+    React.Children.forEach(props.children, (node) => childrenInspected.push(inspectReactNode(node, depth + 1, options)));
     childrenText = childrenInspected.join('\n');
   }
 
   let nodeText = '<';
-  nodeText += inspectReactType(node.type);
+  nodeText += _inspectReactType(node.type);
 
   if (propsText) {
     if (nodeText.length + lengthOfStringsInArray(propsText) > MAX_LEN_THRESHOLD) {
@@ -56,13 +66,17 @@ function inspectReactNode(node, depth = 0) {
   if (childrenText) {
     nodeText += '>\n';
     nodeText += indentString(childrenText, '  ', 1);
-    nodeText += `\n</${inspectReactType(node.type)}>`;
+    nodeText += `\n</${_inspectReactType(node.type)}>`;
   } else {
     nodeText += ' />';
   }
   return nodeText;
 }
 
-export default function inspectReactElement(element) {
-  return inspectReactNode(element);
+export default function inspectReactElement(element, options) {
+  return inspectReactNode(element, 0, options);
 }
+
+inspectReactElement.inspectReactProp = inspectReactProp;
+inspectReactElement.inspectReactProps = inspectReactProps;
+inspectReactElement.inspectReactType= inspectReactType;
