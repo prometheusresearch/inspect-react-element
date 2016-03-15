@@ -40,7 +40,7 @@ function inspectReactNode(node, depth = 0, options = {}) {
 
   const props = _inspectReactProps(node);
   const propNames = Object.keys(omit(props, 'children'));
-  const propsText = propNames.length && propNames
+  const propsText = propNames
     .map(propName => _inspectReactProp(propName, props[propName]))
     .filter(Boolean)
 
@@ -54,7 +54,7 @@ function inspectReactNode(node, depth = 0, options = {}) {
   let nodeText = '<';
   nodeText += _inspectReactType(node.type);
 
-  if (propsText) {
+  if (propsText.length > 0) {
     if (nodeText.length + lengthOfStringsInArray(propsText) > MAX_LEN_THRESHOLD) {
       nodeText += '\n' + indentString(propsText.join('\n'), '  ', 1);
 
